@@ -25,6 +25,5 @@ if __name__ == "__main__":
     NN.t(X_train,Y_train)
     # preProcess = PreProcessing()
     # i = preProcess.cropPieceFromImage("photo5.jpg")
-    # NN.teste("res.jpg")
     # preProcess.cropPieceFromImage("photo5.jpg")
-    # cv2.imwrite('res.jpg',preProcess.cropPieceFromImage("photo5.jpg"))
+    # cv2.imwrite('res.jpg',i)

@@ -55,3 +55,8 @@ class NeuralNetwork():
         train_generator = gen.flow_from_directory(
             os.path.abspath(os.path.join("real_Legos_images")), target_size=(400, 400), batch_size=16) 
         model.fit_generator( train_generator, steps_per_epoch=nb_train_samples // batch_size, epochs=epochs)
+        model.save_weights('first_try.h5')
+        test_img = load_img('res.jpg',target_size=(400,400))
+        test_img = img_to_array(test_img)
+        result = model.predict(test_img)
+        print(result)
