@@ -20,10 +20,12 @@ def createTrainImagesVectorAndLabels(pathToImageFolder):
     return X_train, Y_train
 
 if __name__ == "__main__":
-    X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
+    # X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
     NN = NeuralNetwork()
-    NN.t(X_train,Y_train)
+    NN.resNet50Model((224, 224, 3), 6)
+    # NN.t()
     # preProcess = PreProcessing()
+    # i = preProcess.cropPieceFromImage("rendered_LEGO-brick-images/train/3004 Brick 1x2/0001.png")
     # i = preProcess.cropPieceFromImage("photo5.jpg")
     # preProcess.cropPieceFromImage("photo5.jpg")
     # cv2.imwrite('res.jpg',i)
