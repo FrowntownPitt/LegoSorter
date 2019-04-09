@@ -24,10 +24,11 @@ if __name__ == "__main__":
     # X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
     NN = NeuralNetwork()
     gen = ImageDataGenerator(rotation_range=8, width_shift_range=0.08, shear_range=0.3,height_shift_range=0.08, zoom_range=0.08)
+    #gen = ImageDataGenerator()
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join("real_Legos_images")), target_size = (224,224), color_mode = "rgb", batch_size = 32, class_mode='categorical')
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     resNet = NN.resNet50Model((224, 224, 3), 6)
-    resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 10)
+    resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 100)
     # NN.t()
     # preProcess = PreProcessing()
     # i = preProcess.cropPieceFromImage("rendered_LEGO-brick-images/train/3004 Brick 1x2/0001.png")
