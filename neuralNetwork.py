@@ -10,7 +10,7 @@ from keras.layers import Dense, Dropout, Activation, Flatten, Input
 from keras.optimizers import Adam
 from keras.layers.normalization import BatchNormalization
 from keras.utils import np_utils
-from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D, UpSampling2D
 from keras.layers.advanced_activations import LeakyReLU 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -19,6 +19,7 @@ from sklearn.model_selection import train_test_split
 import os
 import cv2
 import numpy as np
+
 class NeuralNetwork():
     def __init__(self):
         pass
@@ -79,13 +80,12 @@ class NeuralNetwork():
         model_resNet50 = ResNet50(include_top = False, weights = None)
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_resnet50_conv = model_resNet50(model_input)
+        #Init of FC layers
         x = Flatten(name='flatten')(output_resnet50_conv)
         x = Dense(2048, activation = 'relu', name = 'fc1')(x)
         x = Dense(2048, activation = 'relu', name = 'fc2')(x)
-        x = Dense(num_classes, activation = 'softmax', name = 'predictions')(x)
-        resNet50 = Model(inputs = model_input, outputs = x)
+        output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
+        resNet50 = Model(inputs = model_input, outputs = output_layer)
         resNet50.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+        resNet50.summary()
         return resNet50
-
-
-        
