@@ -28,10 +28,11 @@ if __name__ == "__main__":
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     num_classes = len(os.listdir(os.path.abspath(os.path.join("real_Legos_images/trainable_classes"))))
     resNet = NN.modelFromScratch((224, 224, 1), num_classes)
-    resNet.save_weights('model.h5')
-    checkpoint = ModelCheckpoint("weights.{epoch:02d}-{val_loss:.2f}.hdf5",monitor='val_acc',verbose=1,save_best_only=True,mode='max')
-    callbacks_list = [checkpoint]
-    resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 50,callbacks = callbacks_list)
+    #filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+    #checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    #callbacks_list = [checkpoint]
+    resNet.save_weights('weights.h5')
+    resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 100)
     # preProcess = PreProcessing()
     # i = preProcess.cropPieceFromImage("rendered_LEGO-brick-images/train/3004 Brick 1x2/0001.png")
     # i = preProcess.cropPieceFromImage("photo5.jpg")
