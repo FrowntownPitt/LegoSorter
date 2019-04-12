@@ -24,11 +24,11 @@ class NeuralNetwork():
     def __init__(self):
         pass
 
-    def modelFromScratch(self):
+    def modelFromScratch(self,input_shape,num_classes):
         # trainX, testX, trainY, testY = train_test_split(X_train, Y_train, test_size = 0.2, random_state = 42)
         model = Sequential()
 
-        model.add(Conv2D(32, (3, 3), input_shape=(200,200,1)))
+        model.add(Conv2D(32, (3, 3), input_shape=input_shape))
         model.add(BatchNormalization(axis=-1))
         model.add(Activation('relu'))
         model.add(Conv2D(32, (3, 3)))
@@ -51,30 +51,14 @@ class NeuralNetwork():
         model.add(BatchNormalization())
         model.add(Activation('relu'))
         model.add(Dropout(0.2))
-        model.add(Dense(16))
-
-
+        model.add(Dense(num_classes))
         model.add(Activation('softmax'))
+
+
         model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-        gen = ImageDataGenerator(rotation_range=8, width_shift_range=0.08, shear_range=0.3,height_shift_range=0.08, zoom_range=0.08)
-        nb_train_samples=400
-        nb_validation_samples = 100
-        epochs = 10
-        batch_size = 16
-        train_generator = gen.flow_from_directory(os.path.abspath(os.path.join("rendered_LEGO-brick-images/train")), target_size=(200, 200), color_mode = "grayscale", batch_size=16)
-        model.fit_generator( train_generator, steps_per_epoch=nb_train_samples // batch_size, epochs=epochs)
-        model.save_weights('first_try.h5')
-        
-        model.load_weights('first_try.h5')
-        
-        test_img = cv2.imread('res.jpg',0)
-        test_img = cv2.resize(test_img,(200,200))
-        test_img = img_to_array(test_img)
-        test_img = np.expand_dims(np.array(test_img), axis=0)
-        result = model.predict(test_img)
-        y_classes = result.argmax(axis=-1)
-        label_map = (train_generator.class_indices)
-        print(y_classes,label_map,result)
+        model.summary()
+
+        return model
 
     def resNet50Model(self, image_shape, num_classes):
         model_resNet50 = ResNet50(include_top = False, weights = None)

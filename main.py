@@ -21,15 +21,15 @@ def createTrainImagesVectorAndLabels(pathToImageFolder):
 if __name__ == "__main__":
     # X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
     NN = NeuralNetwork()
-    gen = ImageDataGenerator(rotation_range=8, width_shift_range=0.08, shear_range=0.3,height_shift_range=0.08, zoom_range=0.08)
+    gen = ImageDataGenerator(rotation_range=40, width_shift_range=0.2, shear_range=0.3,height_shift_range=0.2, 
+                            zoom_range=0.2,horizontal_flip=True, fill_mode='nearest',rescale=1./255)
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join("real_Legos_images/trainable_classes")), 
-                    target_size = (224,224), color_mode = "rgb", batch_size = 32, class_mode='categorical')
+                    target_size = (224,224), color_mode = "grayscale", batch_size = 32, class_mode='categorical')
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     num_classes = len(os.listdir(os.path.abspath(os.path.join("real_Legos_images/trainable_classes"))))
-    resNet = NN.resNet50Model((224, 224, 3), num_classes)
+    resNet = NN.modelFromScratch((224, 224, 1), num_classes)
     resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 100)
     resNet.save_weights('model.h5')
-    # NN.t()
     # preProcess = PreProcessing()
     # i = preProcess.cropPieceFromImage("rendered_LEGO-brick-images/train/3004 Brick 1x2/0001.png")
     # i = preProcess.cropPieceFromImage("photo5.jpg")
