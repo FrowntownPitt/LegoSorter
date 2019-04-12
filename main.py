@@ -1,5 +1,6 @@
 import cv2
 import os
+import numpy as np
 from keras.preprocessing.image import img_to_array
 from preprocessing import PreProcessing	
 from neuralNetwork import NeuralNetwork
@@ -20,21 +21,31 @@ def createTrainImagesVectorAndLabels(pathToImageFolder):
 
 if __name__ == "__main__":
     # X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
+    path = "rendered_LEGO-brick-images/train"
     NN = NeuralNetwork()
     gen = ImageDataGenerator(rotation_range=40, width_shift_range=0.2, shear_range=0.3,height_shift_range=0.2, 
                             zoom_range=0.2,horizontal_flip=True, fill_mode='nearest',rescale=1./255)
-    train_generator = gen.flow_from_directory(os.path.abspath(os.path.join("real_Legos_images/trainable_classes")), 
+    train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)), 
                     target_size = (224,224), color_mode = "grayscale", batch_size = 32, class_mode='categorical')
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
-    num_classes = len(os.listdir(os.path.abspath(os.path.join("real_Legos_images/trainable_classes"))))
+    num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
     resNet = NN.modelFromScratch((224, 224, 1), num_classes)
     #filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
     #checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     #callbacks_list = [checkpoint]
     resNet.save_weights('weights.h5')
     resNet.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 100)
+    # resNet.load_weights('weights.h5')
     # preProcess = PreProcessing()
-    # i = preProcess.cropPieceFromImage("rendered_LEGO-brick-images/train/3004 Brick 1x2/0001.png")
-    # i = preProcess.cropPieceFromImage("photo5.jpg")
-    # preProcess.cropPieceFromImage("photo5.jpg")
+    # i = preProcess.cropPieceFromImage("photo2.jpg")
+    # i = cv2.resize(i,(224,224))
     # cv2.imwrite('res.jpg',i)
+    # test_img = cv2.imread('res.jpg',0)
+    # test_img = img_to_array(test_img)
+    # test_img = np.expand_dims(np.array(test_img), axis=0)
+    # result = resNet.predict(test_img)
+    # y_classes = result.argmax(axis=-1)
+    # label_map = (train_generator.class_indices)
+    # print(y_classes,label_map,result)
+    
+    # print(resNet.predict_classes('res.jpg'))
