@@ -28,16 +28,19 @@ if __name__ == "__main__":
     gen = ImageDataGenerator(rotation_range=40, width_shift_range=0.2, shear_range=0.3,height_shift_range=0.2, 
                             zoom_range=0.2,horizontal_flip=True, fill_mode='nearest',rescale=1./255)
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)), 
-                    target_size = (224,224), color_mode = "rgb", batch_size = 32, class_mode='categorical')
-    validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)))
+                    target_size = (224,224), color_mode = "rgb", batch_size = 16, class_mode='categorical')
+    validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
+                    target_size = (224,224), color_mode = "rgb", batch_size = 16, class_mode='categorical'))
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
+
     num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
     VGG16 = NN.modelFromScratch((224, 224, 2), num_classes)
     #filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
     #checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     #callbacks_list = [checkpoint]
     VGG16.save_weights('weights.h5')
-    VGG16.fit_generator(train_generator, steps_per_epoch = STEP_SIZE_TRAIN, epochs = 50)
+    VGG16.fit_generator(train_generator, validation_data = validation_generator, validation_steps = validation_generator.n//validation_generator.batch_size,
+                    steps_per_epoch = STEP_SIZE_TRAIN, epochs = 50)
     # resNet.load_weights('weights.h5')
     # preProcess = PreProcessing()
     # i = preProcess.cropPieceFromImage("photo2.jpg")
