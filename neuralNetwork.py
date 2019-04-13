@@ -35,7 +35,7 @@ class NeuralNetwork():
         model.add(Dropout(0.2))
         model.add(Dense(num_classes,activation = 'softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.1), metrics=['accuracy'])
         model.summary()
 
         return model
@@ -46,8 +46,9 @@ class NeuralNetwork():
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
         x = Flatten(name='flatten')(output_VGG16_conv)
-        x = Dense(2048, activation = 'relu', name = 'fc1')(x)
-        x = Dense(2048, activation = 'relu', name = 'fc2')(x)
+        # x = Dense(256, activation = 'relu', name = 'fc1')(x)
+        # x = Dropout(0.5)(x)
+        #x = Dense(2048, activation = 'relu', name = 'fc2')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         vgg16 = Model(inputs = model_input, outputs = output_layer)
         vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
@@ -60,8 +61,8 @@ class NeuralNetwork():
         output_resnet50_conv = model_resNet50(model_input)
         #Init of FC layers
         x = Flatten(name='flatten')(output_resnet50_conv)
-        x = Dense(2048, activation = 'relu', name = 'fc1')(x)
-        x = Dense(2048, activation = 'relu', name = 'fc2')(x)
+        x = Dense(256, activation = 'relu', name = 'fc1')(x)
+        #x = Dense(2048, activation = 'relu', name = 'fc2')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         resNet50 = Model(inputs = model_input, outputs = output_layer)
         resNet50.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
