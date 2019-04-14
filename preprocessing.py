@@ -12,8 +12,8 @@ class PreProcessing():
         Return: matrix of the cropped image
     """
     def cropPieceFromImage(self,pathToImage):
-        im = cv2.imread(os.path.abspath(pathToImage),0)
-        # gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        im = cv2.imread(os.path.abspath(pathToImage))
+        gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(im, (5, 5), 0)
         canny = cv2.Canny(blurred, 20, 40)
         kernel = np.ones((5,5), np.uint8)

@@ -27,40 +27,60 @@ class NeuralNetwork():
     def modelFromScratch(self,input_shape,num_classes):
         # trainX, testX, trainY, testY = train_test_split(X_train, Y_train, test_size = 0.2, random_state = 42)
         model = Sequential()
-        model.add(Conv2D(32, (3, 3), input_shape=input_shape))
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(16, (7, 7), strides=(2, 2), padding="valid", input_shape=input_shape))
 
-        model.add(Conv2D(32, (3, 3)))
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
+        # here we stack two CONV layers on top of each other where
+        # each layerswill learn a total of 32 (3x3) filters
+        model.add(Conv2D(32, (3, 3), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(axis=-1))
 
-        model.add(Conv2D(64, (3, 3)))
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(32, (3, 3), strides=(2, 2), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(axis=-1))
+        model.add(Dropout(0.25))
 
-        model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-        model.add(Dense(64))
-        model.add(Activation('relu'))
+        model.add(Conv2D(64, (3, 3), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(axis=-1))
+
+        model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+ 
+		# increase the number of filters again, this time to 128
+        model.add(Conv2D(128, (3, 3), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(axis=-1))
+
+        model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same"))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization(axis=-1))
+        model.add(Dropout(0.25))
+        
+        model.add(Flatten())
+        model.add(Dense(512))
+        model.add(Activation("relu"))
+        model.add(BatchNormalization())
         model.add(Dropout(0.5))
         model.add(Dense(num_classes))
-        model.add(Activation('softmax'))
-
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
-        model.summary()
+        model.add(Activation("softmax"))
+        opt = Adam(lr=1e-4, decay=1e-4 / 50)
+        model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
 
         return model
 
     def vgg16Model(self,image_shape,num_classes):
-        model_VGG16 = VGG16(include_top = True, weights = None)
+        model_VGG16 = VGG16(include_top = False, weights = None)
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
-        # x = MaxPooling2D()(output_VGG16_conv)
-        # x = Flatten(name='flatten')(x)
-        # x = Dense(256, activation = 'relu', name = 'fc1')(x)
-        # output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
-        vgg16 = Model(inputs = model_input, outputs = output_VGG16_conv)
+        x = GlobalAveragePooling2D()(output_VGG16_conv)
+        x = Flatten(name='flatten')(x)
+        x = Dense(256, activation = 'relu', name = 'fc1')(x)
+        output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
+        vgg16 = Model(inputs = model_input, outputs = output_layer)
         vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
         vgg16.summary()
         return vgg16
