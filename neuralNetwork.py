@@ -27,15 +27,26 @@ class NeuralNetwork():
     def modelFromScratch(self,input_shape,num_classes):
         # trainX, testX, trainY, testY = train_test_split(X_train, Y_train, test_size = 0.2, random_state = 42)
         model = Sequential()
-
         model.add(Conv2D(32, (3, 3), input_shape=input_shape))
+        model.add(Activation('relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Flatten()) # Flattening the 2D arrays for fully connected layers
-        model.add(Dense(128, activation = 'relu'))
-        model.add(Dropout(0.2))
-        model.add(Dense(num_classes,activation = 'softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.1), metrics=['accuracy'])
+        model.add(Conv2D(32, (3, 3)))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
+        model.add(Dense(64))
+        model.add(Activation('relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(num_classes))
+        model.add(Activation('softmax'))
+
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
         model.summary()
 
         return model
@@ -46,9 +57,7 @@ class NeuralNetwork():
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
         x = Flatten(name='flatten')(output_VGG16_conv)
-        # x = Dense(256, activation = 'relu', name = 'fc1')(x)
-        # x = Dropout(0.5)(x)
-        #x = Dense(2048, activation = 'relu', name = 'fc2')(x)
+        x = Dense(256, activation = 'relu', name = 'fc1')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         vgg16 = Model(inputs = model_input, outputs = output_layer)
         vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])

@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
-    VGG16 = NN.vgg16Model((224, 224, 3), num_classes)
+    VGG16 = NN.modelFromScratch((224, 224, 3), num_classes)
     #filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
     #checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     #callbacks_list = [checkpoint]
