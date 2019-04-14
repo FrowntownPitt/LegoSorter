@@ -27,8 +27,9 @@ class PreProcessing():
         rightmost = tuple(cnt[cnt[:,:,0].argmax()][0])
         topmost = tuple(cnt[cnt[:,:,1].argmin()][0])
         bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
-
-        return im[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+        im = im[topmost[1]:bottommost[1], leftmost[0]:rightmost[0]]
+        im = cv2.GaussianBlur(im,(5,5),0)
+        return im
    
    
    
