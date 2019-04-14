@@ -21,22 +21,21 @@ def createTrainImagesVectorAndLabels(pathToImageFolder):
 
 
 if __name__ == "__main__":
-    # X_train, Y_train = createTrainImagesVectorAndLabels(os.path.abspath("real_Legos_images"))
+    
     path = "real_Legos_images/trainable_classes"
     evaluate_path = "real_Legos_images/evaluation"
+    # X_train, Y_train = createTrainImagesVectorAndLabels(path)
     NN = NeuralNetwork()
-    gen = ImageDataGenerator(rotation_range=40, width_shift_range=0.2, shear_range=0.2,height_shift_range=0.2, 
-                            zoom_range=0.2,horizontal_flip=True, fill_mode='nearest',rescale=1./255)
-
-    train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)), 
+    gen = ImageDataGenerator(rotation_range=90, vertical_flip = True,
+                    width_shift_range=0.02, shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest')
+    train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
                     target_size = (224,224), color_mode = "rgb", batch_size = 16, class_mode='categorical')
 
     validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
                     target_size = (224,224), color_mode = "rgb", batch_size = 16, class_mode='categorical')
-
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
-    VGG16 = NN.modelFromScratch((224, 224, 3), num_classes)
+    VGG16 = NN.vgg16Model((224, 224, 3), num_classes)
     #filepath="weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
     #checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     #callbacks_list = [checkpoint]

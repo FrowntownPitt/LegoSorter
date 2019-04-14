@@ -52,14 +52,15 @@ class NeuralNetwork():
         return model
 
     def vgg16Model(self,image_shape,num_classes):
-        model_VGG16 = VGG16(include_top = False, weights = None)
+        model_VGG16 = VGG16(include_top = True, weights = None)
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
-        x = Flatten(name='flatten')(output_VGG16_conv)
-        x = Dense(256, activation = 'relu', name = 'fc1')(x)
-        output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
-        vgg16 = Model(inputs = model_input, outputs = output_layer)
+        # x = MaxPooling2D()(output_VGG16_conv)
+        # x = Flatten(name='flatten')(x)
+        # x = Dense(256, activation = 'relu', name = 'fc1')(x)
+        # output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
+        vgg16 = Model(inputs = model_input, outputs = output_VGG16_conv)
         vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
         vgg16.summary()
         return vgg16
