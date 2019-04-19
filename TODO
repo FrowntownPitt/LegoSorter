@@ -1,6 +1,0 @@
-Create Neural Network following the first link in instructions
-Train model with rendered legos ?
-
-PreProcess the image:
-    - We need to repaint the conveyor belt
-    - Crop the piece from the image -> Done
