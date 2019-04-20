@@ -20,28 +20,25 @@ def moveFiles():
 
 if __name__ == "__main__":
     # moveFiles()
-    batch_size = 16
-    path = "rendered_legos"
+    batch_size = 32
+    path = "real_Legos_images/trainable_classes"
     evaluate_path = "cropped_real_legos"
     NN = NeuralNetwork()
-    # rotation_range=90, vertical_flip = True,
-                    # channel_shift_range = 60.0, width_shift_range=0.02, 
-                    # shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest'
-    gen = ImageDataGenerator()
+    validationDataGenerator = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip=True,horizontal_flip=True,fill_mode = 'nearest')
+    gen = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip = True, horizontal_flip=True)
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
-                    target_size = (224,224), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
-    validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
-                    target_size = (224,224), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
+                    save_to_dir = 'images', save_format = 'jpg', save_prefix = 'train',target_size = (200,200), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+    validation_generator = validationDataGenerator.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
+                    save_to_dir = 'images', save_format = 'jpg', save_prefix = 'teste', target_size = (200,200), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
     # k=0
-    # for i in validation_generator:
+    # for i in train_generator:
     #     k+=1
     #     if k==2:
     #         break
-    
+
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
     num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
-    # VGG16 = NN.modelFromScratch((224, 224, 1), num_classes)
-    VGG16 = NN.vgg16Model((224,224,3),num_classes)
+    VGG16 = NN.modelFromScratch((200,200,1),num_classes)
     filepath="weights-improvement-with-real-images-validation-and-real-legos-images-train.hdf5"
     checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)

@@ -7,7 +7,7 @@ from keras.models import Model
 
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from keras.layers import Dense, Dropout, Activation, Flatten, Input
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras.layers.normalization import BatchNormalization
 from keras.utils import np_utils
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D, UpSampling2D
@@ -25,50 +25,61 @@ class NeuralNetwork():
         pass
 
     def modelFromScratch(self,input_shape,num_classes):
-        # trainX, testX, trainY, testY = train_test_split(X_train, Y_train, test_size = 0.2, random_state = 42)
+        chanDim = -1
         model = Sequential()
-        model.add(Conv2D(16, (7, 7), strides=(2, 2), padding="valid", input_shape=input_shape))
-
-        # here we stack two CONV layers on top of each other where
-        # each layerswill learn a total of 32 (3x3) filters
-        model.add(Conv2D(32, (3, 3), padding="same"))
+        model.add(Conv2D(32, (3, 3), padding="same",input_shape=input_shape))
         model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=-1))
-
-        model.add(Conv2D(32, (3, 3), strides=(2, 2), padding="same"))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=-1))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D(strides=(2, 2)))
         model.add(Dropout(0.25))
 
         model.add(Conv2D(64, (3, 3), padding="same"))
         model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=-1))
-
-        model.add(Conv2D(64, (3, 3), strides=(2, 2), padding="same"))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(Conv2D(64, (3, 3), padding="same"))
         model.add(Activation("relu"))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D(strides=(2, 2)))
         model.add(Dropout(0.25))
- 
-		# increase the number of filters again, this time to 128
+
         model.add(Conv2D(128, (3, 3), padding="same"))
         model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=-1))
-
-        model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same"))
+        model.add(BatchNormalization(axis=chanDim))
+        model.add(Conv2D(128, (3, 3), padding="same"))
         model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=-1))
+        model.add(BatchNormalization(axis=chanDim))
+        # model.add(Conv2D(128, (3, 3), padding="same"))
+        # model.add(Activation("relu"))
+        # model.add(BatchNormalization(axis=chanDim))
+        model.add(MaxPooling2D(strides=(2, 2)))
         model.add(Dropout(0.25))
-        
+
         model.add(Flatten())
         model.add(Dense(512))
         model.add(Activation("relu"))
         model.add(BatchNormalization())
         model.add(Dropout(0.5))
+ 
+        # softmax classifier
         model.add(Dense(num_classes))
         model.add(Activation("softmax"))
-        opt = Adam(lr=1e-4, decay=1e-4 / 50)
-        model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
 
+
+
+
+        # model.add(Conv2D(32, kernel_size = (3,3), padding="same", input_shape=input_shape))
+        # model.add(MaxPooling2D(pool_size = (2,2), strides=2))
+        # model.add(Conv2D(64, kernel_size = (3,3), activation='relu'))
+        # model.add(MaxPooling2D(pool_size=(2,2), strides=2))
+        # model.add(Dropout(0.25))
+        # model.add(Flatten())
+        # model.add(Dense(128, activation='relu'))
+        # model.add(Dropout(0.5))
+        # model.add(Dense(num_classes,activation = 'softmax'))
+        # opt = Adam(lr=1e-4, decay=1e-4 / 50)
+        opt = SGD(lr = 0.01, decay = 0.01/20)
+        model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
+        model.summary()
         return model
 
     def vgg16Model(self,image_shape,num_classes):
@@ -99,3 +110,15 @@ class NeuralNetwork():
         resNet50.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['categorical_accuracy'])
         resNet50.summary()
         return resNet50
+
+    def inceptionV3Model(self, image_shape, num_classes):
+        model_inceptionV3 = InceptionV3(include_top = False, weights = 'imagenet')
+        x = model_inceptionV3.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dense(512, activation = 'relu')(x)
+        predictions = Dense(num_classes, activation = 'softmax')(x)
+        inception = Model(inputs = model_inceptionV3.input, output = predictions)
+        for layer in inception.layers:
+            layer.trainable = False
+        inception.compile(loss = 'categorical_crossentropy', optimizer='sgd', metrics = ['categorical_accuracy'])
+        return inception
