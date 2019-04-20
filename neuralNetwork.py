@@ -76,8 +76,8 @@ class NeuralNetwork():
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
-        x = GlobalAveragePooling2D()(output_VGG16_conv)
-        x = Flatten(name='flatten')(x)
+        # x = GlobalAveragePooling2D()(output_VGG16_conv)
+        x = Flatten(name='flatten')(output_VGG16_conv)
         x = Dense(256, activation = 'relu', name = 'fc1')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         vgg16 = Model(inputs = model_input, outputs = output_layer)
