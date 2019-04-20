@@ -72,16 +72,17 @@ class NeuralNetwork():
         return model
 
     def vgg16Model(self,image_shape,num_classes):
-        model_VGG16 = VGG16(include_top = False, weights = None)
+        model_VGG16 = VGG16(include_top = False, weights = None, pooling = 'max')
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
         # x = GlobalAveragePooling2D()(output_VGG16_conv)
         x = Flatten(name='flatten')(output_VGG16_conv)
-        x = Dense(256, activation = 'relu', name = 'fc1')(x)
+        x = Dense(512, activation = 'relu', name = 'fc1')(x)
+        x = Dense(128, activation = 'relu', name = 'fc2')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         vgg16 = Model(inputs = model_input, outputs = output_layer)
-        vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+        vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['categorical_accuracy'])
         vgg16.summary()
         return vgg16
 
@@ -95,6 +96,6 @@ class NeuralNetwork():
         #x = Dense(2048, activation = 'relu', name = 'fc2')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         resNet50 = Model(inputs = model_input, outputs = output_layer)
-        resNet50.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+        resNet50.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['categorical_accuracy'])
         resNet50.summary()
         return resNet50

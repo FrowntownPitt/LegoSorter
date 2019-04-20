@@ -6,7 +6,7 @@ from keras.preprocessing.image import img_to_array
 from preprocessing import PreProcessing	
 from neuralNetwork import NeuralNetwork
 from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from random import randint
 
 def moveFiles():
@@ -20,17 +20,18 @@ def moveFiles():
 
 if __name__ == "__main__":
     # moveFiles()
-    batch_size = 60
-    path = "real_Legos_images/trainable_classes"
+    batch_size = 16
+    path = "rendered_legos"
     evaluate_path = "cropped_real_legos"
     NN = NeuralNetwork()
-    gen = ImageDataGenerator(rotation_range=90, vertical_flip = True,
-                    channel_shift_range = 60.0, width_shift_range=0.02, 
-                    shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest')
+    # rotation_range=90, vertical_flip = True,
+                    # channel_shift_range = 60.0, width_shift_range=0.02, 
+                    # shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest'
+    gen = ImageDataGenerator()
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
                     target_size = (224,224), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
     validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
-                    target_size = (224,224), color_mode = "rgb", batch_size = 60, class_mode='categorical')
+                    target_size = (224,224), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
     # k=0
     # for i in validation_generator:
     #     k+=1
@@ -43,7 +44,8 @@ if __name__ == "__main__":
     VGG16 = NN.vgg16Model((224,224,3),num_classes)
     filepath="weights-improvement-with-real-images-validation-and-real-legos-images-train.hdf5"
     checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
-    callbacks_list = [checkpoint]
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
+    callbacks_list = [checkpoint,reduce_lr]
     VGG16.save_weights('weights.h5')
     VGG16.fit_generator(train_generator, validation_data = validation_generator, validation_steps = validation_generator.n//validation_generator.batch_size,
                    steps_per_epoch = STEP_SIZE_TRAIN, epochs = 20, callbacks = callbacks_list)
