@@ -2,7 +2,7 @@ from keras.applications import ResNet50
 from keras.applications import InceptionV3
 from keras.applications import Xception # TensorFlow ONLY
 from keras.applications import VGG16
-from keras.applications import VGG19
+from keras.applications import VGG19, MobileNetV2
 from keras.models import Model
 
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
@@ -25,72 +25,36 @@ class NeuralNetwork():
         pass
 
     def modelFromScratch(self,input_shape,num_classes):
-        chanDim = -1
         model = Sequential()
-        model.add(Conv2D(32, (3, 3), padding="same",input_shape=input_shape))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=chanDim))
-        model.add(MaxPooling2D(strides=(2, 2)))
-        model.add(Dropout(0.25))
+        model.add(Conv2D(32, kernel_size=(3, 3), activation='relu',padding='same',input_shape = input_shape))
+        model.add(Conv2D(32, kernel_size=(3, 3), activation='relu',padding='same'))
+        model.add(MaxPooling2D(pool_size=(2, 2),strides=2))
 
-        model.add(Conv2D(64, (3, 3), padding="same"))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=chanDim))
-        model.add(Conv2D(64, (3, 3), padding="same"))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=chanDim))
-        model.add(MaxPooling2D(strides=(2, 2)))
-        model.add(Dropout(0.25))
-
-        model.add(Conv2D(128, (3, 3), padding="same"))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=chanDim))
-        model.add(Conv2D(128, (3, 3), padding="same"))
-        model.add(Activation("relu"))
-        model.add(BatchNormalization(axis=chanDim))
-        # model.add(Conv2D(128, (3, 3), padding="same"))
-        # model.add(Activation("relu"))
-        # model.add(BatchNormalization(axis=chanDim))
-        model.add(MaxPooling2D(strides=(2, 2)))
-        model.add(Dropout(0.25))
-
-        model.add(Flatten())
-        model.add(Dense(512))
-        model.add(Activation("relu"))
+        model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+        model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
         model.add(BatchNormalization())
-        model.add(Dropout(0.5))
- 
-        # softmax classifier
-        model.add(Dense(num_classes))
-        model.add(Activation("softmax"))
+        model.add(MaxPooling2D(pool_size=(2, 2),strides=2))
+        
+        model.add(Flatten())
+        model.add(Dense(256, activation='relu'))
+        model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
 
-
-
-
-        # model.add(Conv2D(32, kernel_size = (3,3), padding="same", input_shape=input_shape))
-        # model.add(MaxPooling2D(pool_size = (2,2), strides=2))
-        # model.add(Conv2D(64, kernel_size = (3,3), activation='relu'))
-        # model.add(MaxPooling2D(pool_size=(2,2), strides=2))
-        # model.add(Dropout(0.25))
-        # model.add(Flatten())
-        # model.add(Dense(128, activation='relu'))
-        # model.add(Dropout(0.5))
-        # model.add(Dense(num_classes,activation = 'softmax'))
         # opt = Adam(lr=1e-4, decay=1e-4 / 50)
         opt = SGD(lr = 0.01, decay = 0.01/20)
-        model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
+        model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["categorical_accuracy"])
         model.summary()
         return model
 
     def vgg16Model(self,image_shape,num_classes):
-        model_VGG16 = VGG16(include_top = False, weights = None, pooling = 'max')
+        model_VGG16 = VGG16(include_top = False, weights = None)
         model_input = Input(shape = image_shape, name = 'input_layer')
         output_VGG16_conv = model_VGG16(model_input)
         #Init of FC layers
         # x = GlobalAveragePooling2D()(output_VGG16_conv)
         x = Flatten(name='flatten')(output_VGG16_conv)
         x = Dense(512, activation = 'relu', name = 'fc1')(x)
-        x = Dense(128, activation = 'relu', name = 'fc2')(x)
+        # x = Dense(128, activation = 'relu', name = 'fc2')(x)
         output_layer = Dense(num_classes,activation='softmax',name='output_layer')(x)
         vgg16 = Model(inputs = model_input, outputs = output_layer)
         vgg16.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['categorical_accuracy'])
@@ -122,3 +86,14 @@ class NeuralNetwork():
             layer.trainable = False
         inception.compile(loss = 'categorical_crossentropy', optimizer='sgd', metrics = ['categorical_accuracy'])
         return inception
+
+    def mobileNetV2(self, image_shape, num_classes):
+        base_model = MobileNetV2(include_top = False, weights = None)
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dense(512, activation = 'relu', name = 'fc1')(x)
+        predictions = Dense(num_classes, activation='softmax')(x)
+        model = Model(inputs = base_model.input, outputs = predictions)
+        model.compile(loss = 'categorical_crossentropy', optimizer=SGD(lr=0.0001, momentum=0.9), metrics=['accuracy','categorical_accuracy'])
+        model.summary()
+        return model
