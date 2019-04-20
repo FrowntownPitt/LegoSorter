@@ -2,7 +2,7 @@ import sys
 import os
 import cv2
 import numpy as np
-
+import pdb
 class PreProcessing():
     def __init__(self):
         pass
@@ -15,7 +15,7 @@ class PreProcessing():
         im = cv2.imread(os.path.abspath(pathToImage))
         return self.__cropImage(im)
 
-     def cropPieceFromConveyorBelt(self,pathToImage):
+    def cropPieceFromConveyorBelt(self,pathToImage):
         im = cv2.imread(os.path.abspath(pathToImage))
         x,y,_ = im.shape
         im = im[int(y*0.30):, int(x*0.25):]
@@ -36,8 +36,8 @@ class PreProcessing():
         topmost = tuple(cnt[cnt[:,:,1].argmin()][0])
         bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
 
-        im = im[topmost[1]-100:bottommost[1]+100, leftmost[0]-100:rightmost[0]+100]
-        im = cv2.GaussianBlur(im,(5,5),0)
+        im = im[topmost[1]-50:bottommost[1]+50, leftmost[0]-50:rightmost[0]+50]
+        # im = cv2.GaussianBlur(im,(5,5),0)
         return im
    
    

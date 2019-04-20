@@ -10,33 +10,30 @@ from keras.callbacks import ModelCheckpoint
 from random import randint
 
 def moveFiles():
-    path = os.path.abspath("fotos/2x3")
+    path = os.path.abspath("photos")
     p = PreProcessing()
-    # for i in os.listdir(path):
-    #     if not os.path.isdir(os.path.abspath(os.path.join("cropped_real_legos",i))):
-    #         os.mkdir(os.path.abspath(os.path.join("cropped_real_legos",i)))
-        # for j in os.listdir(os.path.abspath(os.path.join("fotos",i))):
-        # im = p.cropPieceFromConveyorBelt(os.path.abspath(os.path.join(path,i)))
-        # cv2.imwrite("cropped_real_legos/2x3/"+i,im)
-    #         cv2.imwrite(os.path.abspath(os.path.abspath(os.path.join("cropped_real_legos",j))),
-    #             p.cropPieceFromImage(os.path.abspath(os.path.join(os.path.join("fotos",i),j))))
-            # cv2.imwrite(os.path.abspath(os.path.abspath(os.path.join("cropped_real_legos",j)),p.cropPieceFromImage(os.path.abspath(os.path.join("fotos",i)))))
-        # os.rename(os.path.abspath(os.path.join(p,vect[i])),os.path.abspath(os.path.join("2x2_L",vect[i])))
+    for i in os.listdir(path):
+        # if not os.path.isdir(os.path.abspath(os.path.join("cropped_real_legos",i))):
+            # os.mkdir(os.path.abspath(os.path.join("cropped_real_legos",i)))
+        for j in os.listdir(os.path.abspath(os.path.join(path,i))):
+            image_path = os.path.abspath(os.path.join(os.path.join(path,i),j))
+            im = p.cropPieceFromConveyorBelt(image_path)
+            cv2.imwrite(os.path.abspath(os.path.join(os.path.join("cropped_real_legos",i),j)),im)
 
 if __name__ == "__main__":
-    # moveFiles()
+    moveFiles()
     # batch_size = 60
     # path = "real_Legos_images/trainable_classes"
     # evaluate_path = "real_Legos_images/evaluation"
     # evaluate_path = "cropped_real_legos"
     # # X_train, Y_train = createTrainImagesVectorAndLabels(path)
     # NN = NeuralNetwork()
-    p = PreProcessing()
-    j = p.cropPieceFromConveyorBelt("photos/1x1/1x1_01.jpg")
-    cv2.imwrite('res.jpg',j)
-    gen = ImageDataGenerator(rotation_range=90, vertical_flip = True,
-                    channel_shift_range = 60.0, width_shift_range=0.02, 
-                    shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest')
+    # p = PreProcessing()
+    # j = p.cropPieceFromConveyorBelt("photos/1x1/1x1_01.jpg")
+    # cv2.imwrite('res.jpg',j)
+    # gen = ImageDataGenerator(rotation_range=90, vertical_flip = True,
+    #                 channel_shift_range = 60.0, width_shift_range=0.02, 
+    #                 shear_range=0.02,height_shift_range=0.02, horizontal_flip=True, fill_mode='nearest')
     # train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
     #                 save_to_dir='images', save_prefix='aug',save_format = 'png', target_size = (224,224), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
     # validation_generator = gen.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
