@@ -1,0 +1,5 @@
+tensorflow-gpu
+keras
+sklearn
+pillow
+opencv-python
