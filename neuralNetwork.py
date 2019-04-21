@@ -27,21 +27,21 @@ class NeuralNetwork():
     def modelFromScratch(self,input_shape,num_classes):
         model = Sequential()
         model.add(Conv2D(32, kernel_size=(3, 3), activation='relu',padding='same',input_shape = input_shape))
-        model.add(Conv2D(32, kernel_size=(3, 3), activation='relu',padding='same'))
+        # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu',padding='same'))
         model.add(MaxPooling2D(pool_size=(2, 2),strides=2))
 
         model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
-        model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
-        model.add(BatchNormalization())
+        # model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2),strides=2))
-        
+
         model.add(Flatten())
-        model.add(Dense(256, activation='relu'))
-        model.add(BatchNormalization())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dense(128, activation='relu'))
+        # model.add(Dropout(0.5))
         model.add(Dense(num_classes, activation='softmax'))
 
-        # opt = Adam(lr=1e-4, decay=1e-4 / 50)
-        opt = SGD(lr = 0.01, decay = 0.01/20)
+        opt = Adam(lr=1e-4, decay=1e-4 / 50)
+        # opt = SGD(lr = 0.01, decay = 0.01/20)
         model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["categorical_accuracy"])
         model.summary()
         return model
@@ -94,6 +94,6 @@ class NeuralNetwork():
         x = Dense(512, activation = 'relu', name = 'fc1')(x)
         predictions = Dense(num_classes, activation='softmax')(x)
         model = Model(inputs = base_model.input, outputs = predictions)
-        model.compile(loss = 'categorical_crossentropy', optimizer=SGD(lr=0.0001, momentum=0.9), metrics=['accuracy','categorical_accuracy'])
+        model.compile(loss = 'categorical_crossentropy', optimizer=SGD(lr=0.0001, momentum=0.9), metrics=['categorical_accuracy'])
         model.summary()
         return model
