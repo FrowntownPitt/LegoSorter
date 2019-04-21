@@ -18,8 +18,17 @@ def moveFiles():
 	#     im = p.cropPieceFromConveyorBelt(image_path)
 	#     cv2.imwrite(os.path.abspath(os.path.join(os.path.join("cropped_real_legos",i),j)),im)
 
+def preProcessRenderedImages():
+	#Preprocess it to get only the piece and overwrite the file with new output
+	p = PreProcessing()
+	path = os.path.abspath(os.path.join("rendered_legos"))
+	for i in os.listdir(path):
+		folder_files = os.path.abspath(os.path.join(path,i))
+		for j in os.listdir(folder_files):
+			img = os.path.abspath(os.path.join(folder_files,j))
+			cv2.imwrite(img,p.cropPieceFromImage(img))
+
 if __name__ == "__main__":
-	# moveFiles()
 	batch_size = 40
 	path = "rendered_legos"
 	evaluate_path = "cropped_real_legos"
@@ -27,9 +36,10 @@ if __name__ == "__main__":
 	validationDataGenerator = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip=True,horizontal_flip=True,fill_mode = 'nearest')
 	gen = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip = True, horizontal_flip=True,fill_mode = 'nearest')
 	train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
-	target_size = (128,128), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+	target_size = (224,224), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
 	validation_generator = validationDataGenerator.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
-	target_size = (128,128), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+	target_size = (224,224), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+	
 	# k=0
 	# for i in train_generator:
 	#     k+=1
@@ -37,7 +47,7 @@ if __name__ == "__main__":
 	#         break
 	STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
 	num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
-	VGG16 = NN.modelFromScratch((128,128,1),num_classes)
+	VGG16 = NN.modelFromScratch((224,224,1),num_classes)
 	filepath="weights.hdf5"
 	checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
 	reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
