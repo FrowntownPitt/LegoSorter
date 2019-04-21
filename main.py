@@ -21,7 +21,7 @@ def moveFiles():
 if __name__ == "__main__":
 	# moveFiles()
 	batch_size = 40
-	path = "LEGO_brick_images/train"
+	path = "rendered_legos"
 	evaluate_path = "cropped_real_legos"
 	NN = NeuralNetwork()
 	validationDataGenerator = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip=True,horizontal_flip=True,fill_mode = 'nearest')
