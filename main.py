@@ -20,7 +20,7 @@ def moveFiles():
 
 if __name__ == "__main__":
 	# moveFiles()
-	batch_size = 72
+	batch_size = 12
 	path = "LEGO_brick_images/train"
 	evaluate_path = "cropped_real_legos"
 	NN = NeuralNetwork()
@@ -38,11 +38,10 @@ if __name__ == "__main__":
 	STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
 	num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
 	VGG16 = NN.modelFromScratch((224,224,1),num_classes)
-	filepath="weights-improvement-with-real-images-validation-and-real-legos-images-train.hdf5"
+	filepath="weights.hdf5"
 	checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
 	reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
 	callbacks_list = [checkpoint,reduce_lr]
-	VGG16.save_weights('weights.h5')
 	VGG16.fit_generator(train_generator, validation_data = validation_generator, validation_steps = validation_generator.n//validation_generator.batch_size,
 					steps_per_epoch = STEP_SIZE_TRAIN, epochs = 20, callbacks = callbacks_list)
 	# VGG16.load_weights('weights.hdf5')
