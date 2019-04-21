@@ -20,16 +20,16 @@ def moveFiles():
 
 if __name__ == "__main__":
 	# moveFiles()
-	batch_size = 12
+	batch_size = 40
 	path = "LEGO_brick_images/train"
 	evaluate_path = "cropped_real_legos"
 	NN = NeuralNetwork()
 	validationDataGenerator = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip=True,horizontal_flip=True,fill_mode = 'nearest')
 	gen = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip = True, horizontal_flip=True,fill_mode = 'nearest')
 	train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
-	target_size = (224,224), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+	target_size = (128,128), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
 	validation_generator = validationDataGenerator.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
-	target_size = (224,224), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+	target_size = (128,128), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
 	# k=0
 	# for i in train_generator:
 	#     k+=1
@@ -37,13 +37,13 @@ if __name__ == "__main__":
 	#         break
 	STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
 	num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
-	VGG16 = NN.modelFromScratch((224,224,1),num_classes)
+	VGG16 = NN.modelFromScratch((128,128,1),num_classes)
 	filepath="weights.hdf5"
 	checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
 	reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
 	callbacks_list = [checkpoint,reduce_lr]
 	VGG16.fit_generator(train_generator, validation_data = validation_generator, validation_steps = validation_generator.n//validation_generator.batch_size,
-					steps_per_epoch = STEP_SIZE_TRAIN, epochs = 20, callbacks = callbacks_list)
+					steps_per_epoch = STEP_SIZE_TRAIN, epochs = 50, callbacks = callbacks_list)
 	# VGG16.load_weights('weights.hdf5')
 	# preProcess = PreProcessing()
 	# #     i = preProcess.cropPieceFromImage('photo6.jpeg')
