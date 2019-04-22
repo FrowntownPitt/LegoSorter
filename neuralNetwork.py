@@ -26,7 +26,7 @@ class NeuralNetwork():
 
 
     def multitask_model(self, input_shape, num_tasks, class_names):
-        input_shape = Input(shape=input_shape)
+        input_shape = Input(shape=input_shape, name="Input")
 
         x = Conv2D(8, kernel_size=(7, 7), activation='sigmoid', padding='same', strides=3)(input_shape)
         x = Conv2D(16, kernel_size=(3, 3), activation='sigmoid', padding='same')(x)
@@ -34,17 +34,42 @@ class NeuralNetwork():
         x = MaxPooling2D(pool_size=(3, 3), strides=3)(x)
 
         x = Flatten()(x)
-        x = Dense(16, activation='softmax', name='FeatureCollection')(x)
+        x = Dense(64, activation='sigmoid', name='FeatureCollection')(x)
 
         tasks = []
         for t in range(num_tasks):
-            task = Dense(1, activation="linear", name=class_names[t])(x)
+            task = Dense(32, activation='relu')(x)
+            task = Dense(1, activation="linear", name=class_names[t])(task)
             tasks.append(task)
 
         # opt = SGD(lr = 0.01, decay = 0.01/20)
         model = Model(input_shape, tasks)
         model.summary()
         return model
+
+    def add_new_task(self, model, old_task_names, new_task_name):
+        input_shape = model.get_layer("Input")
+        pre_task_layers = model.get_layer("FeatureCollection")
+        old_tasks = []
+        for t in old_task_names:
+            old_tasks.append(model.get_layer(t).output)
+
+        # freeze all old layers
+        for layer in model.layers:
+            layer.trainable = False
+
+        new_task = Dense(32, activation='sigmoid')(pre_task_layers.output)
+        new_task = Dense(1, activation="linear", name=new_task_name)(new_task)
+
+        model = Model(input_shape.output, old_tasks + [new_task])
+        model.summary()
+        return model
+
+    def unfreeze(self, model):
+        for layer in model.layers:
+            layer.trainable = True
+
+        return model;
 
     def modelFromScratch(self,input_shape,num_classes):
         model = Sequential()

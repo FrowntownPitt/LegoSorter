@@ -10,6 +10,7 @@ from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from random import randint
 import random
 from keras.utils import plot_model
+from keras.optimizers import Adam
 from imutils import paths
 
 def image_generator(imagePaths, batch_size):
@@ -39,7 +40,7 @@ def image_generator(imagePaths, batch_size):
 
 def image_list(imagePaths):
     data = []
-    expectations = [[] for _ in range(num_classes)]
+    expectations = [[] for _ in range(len(types))]
     for imagePath in imagePaths:
         image = cv2.imread(imagePath)
         image = cv2.resize(image, (IMAGE_SIZE[1], IMAGE_SIZE[0]))
@@ -47,12 +48,14 @@ def image_list(imagePaths):
         image = img_to_array(image)
         data.append(image)
 
-        expectation = [0] * num_classes
+        expectation = [0] * len(types)
         category = types[imagePath.split("/")[-2]]
         expectation[category] = 1
         for e in range(len(expectation)):
             expectations[e].append(expectation[e])
         expectations.append(expectation)
+
+    expectations = {class_names[t]: np.array(expectations[t]) for t in range(len(class_names))}
 
     return data, expectations
 
@@ -62,20 +65,25 @@ path = "rendered_legos"
 evaluate_path = "cropped_real_legos"
 NN = NeuralNetwork()
 
-trainImagePaths = sorted(list(paths.list_images('rendered_legos')))
-validImagePaths = sorted(list(paths.list_images('cropped_real_legos')))
+trainImagePaths = sorted(list(paths.list_images('rendered_legos')))# + list(paths.list_images('rendered_new')))
+validImagePaths = sorted(list(paths.list_images('cropped_real_legos')))# + list(paths.list_images('real_new')))
 
 testImagePaths = sorted(list(paths.list_images('real_Legos_images/miniEval')))
+testNewImagePaths = sorted(list(paths.list_images('real_Legos_images/miniEval')) + list(paths.list_images('real_Legos_images/newMiniEval')))
 
-EPOCHS = 50
-IMAGE_SIZE = (96, 96, 1)
+newImagePaths = sorted(list(paths.list_images('rendered_new')))
+newValidImagePaths = sorted(list(paths.list_images('real_new')))
+
+EPOCHS = 25
+IMAGE_SIZE = (200, 200, 1)
 # STEP_SIZE_TRAIN = len(imagePaths) // batch_size
 
-random.seed(4433)
+random.seed(4149)
 random.shuffle(trainImagePaths)
 random.shuffle(validImagePaths)
+random.shuffle(newImagePaths)
 
-types = list(os.listdir('rendered_legos'))
+types = list(os.listdir('rendered_legos'))# + list(os.listdir('rendered_new'))
 types = {types[index]:index for index in range(len(types))}
 num_classes = len(types)
 
@@ -89,7 +97,7 @@ plot_model(model, to_file='model.png')
 
 filepath="weights-FRONet.hdf5"
 
-train, test = True, True
+train, new_model, test = True, True, False
 
 if train:
     # generator = image_generator(trainImagePaths, batch_size)
@@ -99,24 +107,86 @@ if train:
     data, expectations = image_list(trainImagePaths)
     validData, validExpectations = image_list(validImagePaths)
 
-    expectations = {class_names[t]: np.array(expectations[t]) for t in range(len(class_names))}
-    validExpectations = {class_names[t]: np.array(validExpectations[t]) for t in range(len(class_names))}
-
-    print(expectations)
     checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
     callbacks_list = [checkpoint,reduce_lr]
+    optimizer = Adam()
+    model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['accuracy'])
     model.fit(np.array(data), expectations, validation_data = (np.array(validData), validExpectations),
                     epochs = EPOCHS, callbacks = callbacks_list, batch_size=batch_size)
 
-if test:
-    model.load_weights(filepath)
+    print("Old model evaluation: ")
+    model.load_weights("" + filepath)
 
     preProcess = PreProcessing()
 
     data, expectations = image_list(testImagePaths)
 
-    expectations = {class_names[t]: np.array(expectations[t]) for t in range(len(class_names))}
+    ev = model.evaluate(x=np.array(data), y=expectations, verbose=1)
+
+    for i in range(len(ev)):
+        print("%s: %f" % (model.metrics_names[i], ev[i]))
+
+if new_model:
+    new_class_name = os.listdir("rendered_new")[0]
+    types[new_class_name] = num_classes
+    num_classes += 1
+
+    model.load_weights(filepath)
+    plot_model(model, to_file='new_model.png')
+
+    model = NN.add_new_task(model, class_names, new_class_name)
+    class_names = list(types.keys())
+
+    new_data, new_expectations = image_list(newImagePaths)
+    new_valid_data, new_valid_expectations = image_list(newValidImagePaths)
+
+    checkpoint = ModelCheckpoint("new-" + filepath, verbose=1, save_best_only=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
+    callbacks_list = [checkpoint,reduce_lr]
+    optimizer = Adam(lr=0.01, decay=0.00005)
+    model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['accuracy'])
+    model.fit(np.array(new_data), new_expectations, validation_data = (np.array(new_valid_data), new_valid_expectations),
+                    epochs = EPOCHS, callbacks = callbacks_list, batch_size=batch_size, verbose=0)
+
+    print("New model evaluation: ")
+    model.load_weights("new-" + filepath)
+
+    preProcess = PreProcessing()
+
+    data, expectations = image_list(testNewImagePaths)
+
+    ev = model.evaluate(x=np.array(data), y=expectations, verbose=1)
+
+    for i in range(len(ev)):
+        print("%s: %f" % (model.metrics_names[i], ev[i]))
+
+    model = NN.unfreeze(model)
+    callbacks_list = [checkpoint,reduce_lr]
+    optimizer = Adam(lr=0.0001, decay=0.00001)
+    model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['accuracy'])
+    model.fit(np.array(new_data), new_expectations, validation_data = (np.array(new_valid_data), new_valid_expectations),
+                    epochs = EPOCHS, callbacks = callbacks_list, batch_size=batch_size, verbose=0)
+
+    print("New model evaluation: ")
+    model.load_weights("new-" + filepath)
+
+    preProcess = PreProcessing()
+
+    data, expectations = image_list(testNewImagePaths)
+
+    ev = model.evaluate(x=np.array(data), y=expectations, verbose=1)
+
+    for i in range(len(ev)):
+        print("%s: %f" % (model.metrics_names[i], ev[i]))
+
+if test:
+    print("Old model evaluation: ")
+    model.load_weights("" + filepath)
+
+    preProcess = PreProcessing()
+
+    data, expectations = image_list(testImagePaths)
 
     ev = model.evaluate(x=np.array(data), y=expectations, verbose=1)
 
