@@ -6,7 +6,7 @@ from keras.applications import VGG19, MobileNetV2
 from keras.models import Model
 
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
-from keras.layers import Dense, Dropout, Activation, Flatten, Input
+from keras.layers import Dense, Dropout, Activation, Flatten, Input, Concatenate
 from keras.optimizers import Adam, SGD
 from keras.layers.normalization import BatchNormalization
 from keras.utils import np_utils
@@ -23,6 +23,28 @@ import numpy as np
 class NeuralNetwork():
     def __init__(self):
         pass
+
+
+    def multitask_model(self, input_shape, num_tasks, class_names):
+        input_shape = Input(shape=input_shape)
+
+        x = Conv2D(8, kernel_size=(7, 7), activation='sigmoid', padding='same', strides=3)(input_shape)
+        x = Conv2D(16, kernel_size=(3, 3), activation='sigmoid', padding='same')(x)
+
+        x = MaxPooling2D(pool_size=(3, 3), strides=3)(x)
+
+        x = Flatten()(x)
+        x = Dense(16, activation='softmax', name='FeatureCollection')(x)
+
+        tasks = []
+        for t in range(num_tasks):
+            task = Dense(1, activation="linear", name=class_names[t])(x)
+            tasks.append(task)
+
+        # opt = SGD(lr = 0.01, decay = 0.01/20)
+        model = Model(input_shape, tasks)
+        model.summary()
+        return model
 
     def modelFromScratch(self,input_shape,num_classes):
         model = Sequential()
