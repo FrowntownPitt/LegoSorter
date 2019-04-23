@@ -32,7 +32,7 @@ def preProcessRenderedImages():
 if __name__ == "__main__":
     batch_size = 36
     EPOCHS = 10
-    path = "rendered_legos"
+    path = "real_Legos_images/trainable_classes"
     evaluate_path = "cropped_real_legos"
     size1, size2 = 200, 200
 
