@@ -30,19 +30,19 @@ def preProcessRenderedImages():
             cv2.imwrite(img,p.cropPieceFromImage(img))
 
 if __name__ == "__main__":
-    batch_size = 27
-    EPOCHS = 50
+    batch_size = 36
+    EPOCHS = 10
     path = "rendered_legos"
     evaluate_path = "cropped_real_legos"
-    size1, size2 = 224, 224
+    size1, size2 = 200, 200
 
     NN = NeuralNetwork()
     validationDataGenerator = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip=True,horizontal_flip=True,fill_mode = 'nearest')
     gen = ImageDataGenerator(rescale=1./255, rotation_range=90, vertical_flip = True, horizontal_flip=True,fill_mode = 'nearest')
     train_generator = gen.flow_from_directory(os.path.abspath(os.path.join(path)),
-                                              target_size = (size1,size2), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+                                              target_size = (size1,size2), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
     validation_generator = validationDataGenerator.flow_from_directory(os.path.abspath(os.path.join(evaluate_path)),
-                                                                       target_size = (size1,size2), color_mode = "grayscale", batch_size = batch_size, class_mode='categorical')
+                                                                       target_size = (size1,size2), color_mode = "rgb", batch_size = batch_size, class_mode='categorical')
     STEP_SIZE_TRAIN = train_generator.n//train_generator.batch_size
 
     num_classes = len(os.listdir(os.path.abspath(os.path.join(path))))
@@ -51,14 +51,13 @@ if __name__ == "__main__":
     # plot_model(model, to_file='model.png')
     # print("train steps:", train_generator.n//train_generator.batch_size)
 
-    model = NN.vgg16Model((size1,size2,1),num_classes)
-    plot_model(model, to_file='vgg16.png')
+    model = NN.inceptionV3Model((size1,size2,3),num_classes)
+    plot_model(model, to_file='scratch.png')
 
     filepath="weights-miniVGG.hdf5"
     checkpoint = ModelCheckpoint(filepath, verbose=1, save_best_only=True)
-    tensorboard = TensoBoard(log_dir = './logs', batch_size = batch_size)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
-    callbacks_list = [checkpoint,reduce_lr,tensorboard]
+    tensorboard = TensorBoard(log_dir = './logs', batch_size = batch_size)
+    callbacks_list = [checkpoint,tensorboard]
     model.fit_generator(train_generator, validation_data = validation_generator, validation_steps = validation_generator.n//validation_generator.batch_size,
                     steps_per_epoch = STEP_SIZE_TRAIN, epochs = EPOCHS, callbacks = callbacks_list)
     
